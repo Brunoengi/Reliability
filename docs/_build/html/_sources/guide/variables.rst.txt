@@ -110,7 +110,8 @@ Possible keys:
 ================ ======================================  =========================
 Combination          Required                                           Optional
 ================ ======================================  =========================
-1                  varname, vardist, varmean, varcov                      varhmean
+1                  varname, vardist, varmean, varstd                      varhmean
+2                  varname, vardist, varmean, varcov                      varhmean
 ================ ======================================  =========================
 
 

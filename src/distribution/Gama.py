@@ -7,10 +7,10 @@ class Gama(AbstractDistribution):
 
     self.validate_specific_parameters(props)
     super().__init__(props)
-    ValidateClass.has_invalid_key(self, 'varname', 'vardist', 'varmean', 'varstd', 'varhmean')
+    ValidateClass.has_invalid_key(self, 'varname', 'vardist', 'varmean', 'varcov','varstd', 'varhmean')
 
   def validate_specific_parameters(self, props):
     ValidateDictionary.is_dictionary(props)
-    ValidateDictionary.check_possible_arrays_keys(props, ['varmean', 'varcov'])
+    ValidateDictionary.check_possible_arrays_keys(props, ['varmean', 'varcov'], ['varmean', 'varstd'])
     ValidateDictionary.check_if_exists(props, 'varcov', lambda d, k: ValidateDictionary.is_greater_or_equal_than(d, k, 0))
     
