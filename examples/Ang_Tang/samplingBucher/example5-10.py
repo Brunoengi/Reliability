@@ -28,8 +28,6 @@ dvar = [
     {'varname': 'factor3', 'varvalue': 1.00},
 ]
 
-
-
 # MCS method
 #
 storm = Reliability(xvar, dvar, gfunction)

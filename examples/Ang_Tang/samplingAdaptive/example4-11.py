@@ -5,7 +5,7 @@ Example 7.3 - Linear limit state function with normal independent variables
 @author: MVREAL
 
 ANG, Alfredo H.-S.; TANG, Wilson H. Probability concepts in engineering: emphasis on applications in civil and environmental engineering. 2. ed. New York: Wiley, 2007.
-Example 4-11, page 164 - Adapted
+Example 4-11, page 163 - Adapted
 Expected pf = 0.0174
 """
 import numpy as np
@@ -44,7 +44,7 @@ dvar = [
 ]
 
 #
-# MC-IS adaptive method
+# MCS method
 #
 column = Reliability(xvar, dvar, gfunction, None, None)
 column.adaptive(50, 10000, 0.01)
