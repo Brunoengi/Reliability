@@ -1,12 +1,7 @@
 """
-Created on Mon Feb 08 17:12:00 2021
-Reliabilty Analysis
-Example 7.3 - Linear limit state function with normal independent variables
-@author: MVREAL
-
 ANG, Alfredo H.-S.; TANG, Wilson H. Probability concepts in engineering: emphasis on applications in civil and environmental engineering. 2. ed. New York: Wiley, 2007.
-Example 4-12, page 164 
-Expected pf = 1 - 0.74 = 0.26
+Example 5-06, page 209
+Expected pf = 1 - 0.721 = 0.279
 """
 
 from main import *
@@ -31,11 +26,11 @@ def gfunction(x, d):
 # Random variables: name, probability distribution, mean and coefficient of variation
 
 xvar = [
-    {'varname': '1-2', 'vardist': 'normal', 'varmean': 2, 'varstd': 1},
-    {'varname': '2-3', 'vardist': 'normal', 'varmean': 1, 'varstd': 0.5},
-    {'varname': '3-5', 'vardist': 'normal', 'varmean': 3, 'varstd': 1},
-    {'varname': '1-4', 'vardist': 'normal', 'varmean': 5, 'varstd': 1},
-    {'varname': '4-5', 'vardist': 'normal', 'varmean': 2, 'varstd': 0.5}
+    {'varname': '1-2', 'vardist': 'beta', 'varmean': 2, 'parameter1': 0, 'parameter2': 5.0, 'parameter3': 2.0, 'parameter4': 3.0},
+    {'varname': '2-3', 'vardist': 'beta', 'varmean': 1, 'parameter1': 0, 'parameter2': 2.5, 'parameter3': 2.0, 'parameter4': 3.0},
+    {'varname': '3-5', 'vardist': 'beta', 'varmean': 3, 'parameter1': 1, 'parameter2': 6.0, 'parameter3': 2.0, 'parameter4': 3.0},
+    {'varname': '1-4', 'vardist': 'beta', 'varmean': 5, 'parameter1': 3, 'parameter2': 8.0, 'parameter3': 2.0, 'parameter4': 3.0},
+    {'varname': '4-5', 'vardist': 'beta', 'varmean': 2, 'parameter1': 1, 'parameter2': 3.5, 'parameter3': 2.0, 'parameter4': 3.0},
 ]
 
 # Design variables
@@ -49,7 +44,7 @@ dvar = [
 ]
 
 #
-# MCS enhanced method
+# FORM method
 #
 construction = Reliability(xvar, dvar, gfunction, None, None)
-construction.sampling_enhanced(100, 5000, 0.005)
+construction.form(iHLRF=True, toler=1.e-6)

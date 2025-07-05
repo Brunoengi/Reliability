@@ -49,7 +49,7 @@ dvar = [
 ]
 
 #
-# MCS method
+# MC-IS adaptive method
 #
 construction = Reliability(xvar, dvar, gfunction, None, None)
 construction.adaptive(100, 5000, 0.005)

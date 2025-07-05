@@ -29,7 +29,7 @@ dvar = [
 corrmatrix = [[1.00, 0.75],
               [0.75, 1.00]]
 
-# MCS method
+# MCS enhanced method
 #
 column = Reliability(xvar, dvar, gfunction, None, corrmatrix)
 column.sampling_enhanced(50, 5000, 0.01)

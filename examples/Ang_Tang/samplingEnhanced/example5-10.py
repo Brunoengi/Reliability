@@ -27,10 +27,8 @@ dvar = [
     {'varname': 'factor2', 'varvalue': 1.00},
     {'varname': 'factor3', 'varvalue': 1.00},
 ]
-
-
-
-# MCS method
+#
+# MCS enhanced method
 #
 storm = Reliability(xvar, dvar, gfunction)
 storm.sampling_enhanced(100, 5000, 0.005)

@@ -39,7 +39,7 @@ dvar = [
     {'varname': 'factor4', 'varvalue': 1.00}
 ]
 #
-# MCS method
+# MCS enhanced method
 #
 column = Reliability(xvar, dvar, gfunction)
 column.sampling_enhanced(100, 5000, 0.03)

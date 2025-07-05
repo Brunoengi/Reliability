@@ -36,7 +36,7 @@ dvar = [
     {'varname': 'gamma2', 'varvalue': 1.00}
 ]
 #
-# MCS method
+# MCS enhanced method
 #
 beam = Reliability(xvar, dvar, gfunction)
 beam.sampling_enhanced(100, 5000, 0.01)

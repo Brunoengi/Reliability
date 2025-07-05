@@ -42,7 +42,7 @@ corrmatrix = [[1.00, 0.40, 0.00],
               [0.40, 1.00, 0.00],
               [0.00, 0.00, 1.00]]
 #
-# MCS method
+# MCS enhanced method
 #
 beam = Reliability(xvar, dvar, gfunction, None, corrmatrix)
 beam.sampling_enhanced(100, 5000, 0.01)

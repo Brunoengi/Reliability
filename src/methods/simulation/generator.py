@@ -199,7 +199,7 @@ class RandomVariablesGenerator:
           elif namedist == 'beta':
               a = float(var['parameter1'])
               b = float(var['parameter2'])
-              q = float(var['parameter3'])
+              q = float(var['parameter3']) 
               r = float(var['parameter4'])
 
               def beta_limits(vars, mux, sigmax, q, r):
