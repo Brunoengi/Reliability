@@ -63,8 +63,8 @@ Possible keys:
 ================ ======================================  =========================
 Combination          Required                                           Optional
 ================ ======================================  =========================
-1                  varname, vardist, varmean, varcov                      varhmean
-2                  varname, vardist, varmean, varstd                      varhmean
+1                  varname, vardist, varmean, varstd                      varhmean
+2                  varname, vardist, varmean, varcov                      varhmean
 ================ ======================================  =========================
 
 Log-normal Distribution
@@ -75,8 +75,8 @@ Possible keys:
 ================ ======================================  =========================
 Combination          Required                                           Optional
 ================ ======================================  =========================
-1                  varname, vardist, varmean, varcov                      varhmean
-2                  varname, vardist, varmean, varstd                      varhmean
+1                  varname, vardist, varmean, varstd                      varhmean
+2                  varname, vardist, varmean, varcov                      varhmean
 ================ ======================================  =========================
 
 Uniform Distribution
@@ -131,7 +131,8 @@ Frechet Distribution
 ================ ======================================  =========================
 Combination          Required                                           Optional
 ================ ======================================  =========================
-1                  varname, vardist, varmean, varcov                      varhmean
+1                  varname, vardist, varmean, varstd                      varhmean
+2                  varname, vardist, varmean, varcov                      varhmean
 ================ ======================================  =========================
 
 Weibull Distribution
