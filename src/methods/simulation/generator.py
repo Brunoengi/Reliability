@@ -73,7 +73,7 @@ class RandomVariablesGenerator:
       """
       Random variables generator for Monte Carlo Simulation methods, only to correlated variables
       """
-
+      print(self.reliability.xvar)
       xvar_correlated = [self.reliability.xvar[i] for i in indexes_correlated_xvar]
       nxvar_correlated = len(xvar_correlated)
 
@@ -101,13 +101,13 @@ class RandomVariablesGenerator:
 
       for i, var in enumerate(xvar_correlated):
           # Adjust std if needed
-          if var['varstd'] == 0.0:
-              var['varstd'] = float(var['varcov']) * float(var['varmean'])
+          if var.varstd == 0.0:
+              var.varstd = float(var.varcov) * float(var.varmean)
 
-          namedist = var['vardist'].lower()
-          mufx = float(var['varmean'])
-          sigmafx = float(var['varstd'])
-          muhx = float(var['varhmean'])
+          namedist = var.namedist
+          mufx = var.mufx
+          sigmafx = var.sigmafx
+          muhx = var.muhx
           sigmahx = nsigma * sigmafx
 
           zk_col = zk[:, i]
@@ -197,10 +197,7 @@ class RandomVariablesGenerator:
               hx = weibull_min.pdf(ynh, kapah) / (w1h - epsilon)
 
           elif namedist == 'beta':
-              a = float(var['parameter1'])
-              b = float(var['parameter2'])
-              q = float(var['parameter3']) 
-              r = float(var['parameter4'])
+              
 
               def beta_limits(vars, mux, sigmax, q, r):
                   a_, b_ = vars
@@ -208,14 +205,14 @@ class RandomVariablesGenerator:
                   eq2 = sqrt((q * r) / (((q + r) ** 2) * (q + r + 1))) * (b_ - a_) - sigmax
                   return [eq1, eq2]
 
-              ah, bh = fsolve(beta_limits, (a, b), args=(muhx, sigmahx, q, r))
-              loc, scale = a, b - a
+              ah, bh = fsolve(beta_limits, (var.a, var.b), args=(muhx, sigmahx, var.q, var.r))
+              loc, scale = var.a, var.b - var.a
               loch, scaleh = ah, bh - ah
               uk = norm.cdf(zk_col)
-              x[:, i] = beta_dist.ppf(uk, q, r, loc=loc, scale=scale)
-              fx = beta_dist.pdf(x[:, i], q, r, loc=loc, scale=scale)
-              hx = beta_dist.pdf(x[:, i], q, r, loc=loch, scale=scaleh)
-              cdfx = beta_dist.cdf(x[:, i], q, r, loc=loc, scale=scale)
+              x[:, i] = beta_dist.ppf(uk, var.q, var.r, loc=loc, scale=scale)
+              fx = beta_dist.pdf(x[:, i], var.q, var.r, loc=loc, scale=scale)
+              hx = beta_dist.pdf(x[:, i], var.q, var.r, loc=loch, scale=scaleh)
+              cdfx = beta_dist.cdf(x[:, i], var.q, var.r, loc=loc, scale=scale)
               zf[:, i] = norm.ppf(cdfx)
 
           elif namedist == 'gamma':
@@ -311,20 +308,21 @@ class RandomVariablesGenerator:
     i = -1
     for var in xvar_uncorrelated:
         i += 1
-        if var['varstd'] == 0.00:
-            var['varstd'] = float(var['varcov']) * float(var['varmean'])
+        if var.varstd == 0.00:
+            var.varstd = float(var.varcov) * float(var.varmean)
         if iprint:
             print(self.reliability.xvar[i])
         #
         #
         # Normal distribution
         #
-        namedist = var['vardist']
+        namedist = var.namedist
+        mufx = var.mufx
+        sigmafx = var.sigmafx
+        muhx = var.muhx
+        sigmahx = nsigma * sigmafx
+
         if namedist.lower() == 'gauss':
-            mufx = float(var['varmean'])
-            sigmafx = float(var['varstd'])
-            muhx = float(var['varhmean'])
-            sigmahx = nsigma * sigmafx
             x[:, i] = norm.rvs(loc=muhx, scale=sigmahx, size=ns)
             fx = norm.pdf(x[:, i], mufx, sigmafx)
             hx = norm.pdf(x[:, i], muhx, sigmahx)
@@ -337,12 +335,6 @@ class RandomVariablesGenerator:
         elif namedist.lower() == 'uniform':
             a = float(var['parameter1'])
             b = float(var['parameter2'])
-            
-            mufx = float(var['varmean'])
-            sigmafx = float(var['varstd'])
-            
-            muhx = float(var['varhmean'])
-            sigmahx = nsigma * sigmafx
             ah, bh =  fsolve(uniform_limits, (1, 1), args= (muhx, sigmahx))  
                             
             
@@ -355,10 +347,6 @@ class RandomVariablesGenerator:
         # Lognormal distribution
         #
         elif namedist.lower() == 'lognorm':
-            mufx = float(var['varmean'])
-            sigmafx = float(var['varstd'])
-            muhx = float(var['varhmean'])
-            sigmahx = nsigma * sigmafx
             zetafx = np.sqrt(np.log(1.00 + (sigmafx / mufx) ** 2))
             lambdafx = np.log(mufx) - 0.5 * zetafx ** 2
             zetahx = np.sqrt(np.log(1.00 + (sigmahx / muhx) ** 2))
@@ -373,9 +361,6 @@ class RandomVariablesGenerator:
         # Gumbel distribution
         #
         elif namedist.lower() == 'gumbel':
-            mufx = float(var['varmean'])
-            sigmafx = float(var['varstd'])
-            muhx = float(var['varhmean'])
             sigmahx = nsigma * sigmafx
             alphafn = np.pi / np.sqrt(6.00) / sigmafx
             ufn = mufx - np.euler_gamma / alphafn
@@ -393,10 +378,6 @@ class RandomVariablesGenerator:
         # Frechet distribution
         #
         elif namedist.lower() == 'frechet':
-            mufx = float(var['varmean'])
-            sigmafx = float(var['varstd'])
-            muhx = float(var['varhmean'])
-            sigmahx = nsigma * sigmafx
             deltafx = sigmafx / mufx
             kapa0 = 2.50
             gsinal = -1.00
@@ -418,11 +399,7 @@ class RandomVariablesGenerator:
         # Weibull distribution - minimum
         #
         elif namedist.lower() == 'weibull':
-            mufx = float(var['varmean'])
-            sigmafx = float(var['varstd'])
             epsilon = float(var['varinf'])
-            muhx = float(var['varhmean'])
-            sigmahx = nsigma * sigmafx
             deltafx = sigmafx / (mufx - epsilon)
             kapa0 = 2.50
             gsinal = 1.00
@@ -444,22 +421,18 @@ class RandomVariablesGenerator:
         # Beta distribution
         #
         elif namedist.lower() == 'beta':
-            a = float(var['parameter1'])
-            b = float(var['parameter2'])
-            q = float(var['parameter3'])
-            r = float(var['parameter4'])
-            mufx = float(var['varmean'])
-            sigmafx = float(var['varstd'])
-            loc = a
-            scale = (b - a)
-            muhx = float(var['varhmean'])
-            sigmahx = nsigma * sigmafx
-            ah, bh =  fsolve(beta_limits, (1, 1), args= ( muhx, sigmahx, q, r))  
+            
+           
+            loc = var.a
+            scale = (var.b - var.a)
+            
+            
+            ah, bh =  fsolve(beta_limits, (1, 1), args= ( muhx, sigmahx, var.q, var.r))  
             loch = ah
             scaleh = (bh - ah)        
-            x[:, i] = beta_dist.rvs(q, r, loch, scaleh, size=ns)
-            fx = beta_dist.pdf(x[:, i], q, r, loc, scale)
-            hx = beta_dist.pdf(x[:, i], q, r, loch, scaleh)
+            x[:, i] = beta_dist.rvs(var.q, var.r, loch, scaleh, size=ns)
+            fx = beta_dist.pdf(x[:, i], var.q, var.r, loc, scale)
+            hx = beta_dist.pdf(x[:, i], var.q, var.r, loch, scaleh)
             weight = weight * (fx / hx)
             fxixj = fxixj * fx 
 
@@ -468,16 +441,14 @@ class RandomVariablesGenerator:
         # Gamma distribution
         #
         elif namedist.lower() == 'gamma':
-            mufx = float(var['varmean'])
-            sigmafx = float(var['varstd'])
+            
             deltafx = sigmafx / mufx
             k = 1. / deltafx ** 2
             v = k / mufx
             a = k
             loc = 0.00
             scale = 1. / v
-            muhx = float(var['varhmean'])
-            sigmahx = nsigma * sigmafx
+          
             deltahx = sigmahx / muhx
             kh = 1. / deltahx ** 2
             vh = kh / muhx

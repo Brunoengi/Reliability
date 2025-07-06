@@ -191,38 +191,46 @@ class TransformationMethods(TransformationBase):
 
       i = -1
       for var in self.reliability.xvar:
-          i += 1
-          # Names of the random variables x
-          namevar.append(str(var['varname']))
-          # Names of the probability density functions of the variables x
-          dist.append(str(var['vardist']))
-          # Mean value of the random variables x
-          mux0.append(float(var['varmean']))
-          # Standard deviation of the random variables x
-          if var['varstd'] == 0.00:
-              sigmax0.append(float(var['varcov']) * float(var['varmean']))
-          else:
-              sigmax0.append(float(var['varstd']))
-          # Parameter1
-          if 'parameter1' in var:
-              par1.append(float(var['parameter1']))
-          else:
-              par1.append(0.00)
-          # Parameter2
-          if 'parameter2' in var:
-              par2.append(float(var['parameter2']))
-          else:
-              par2.append(0.00)
-          # Parameter3
-          if 'parameter3' in var:
-              par3.append(float(var['parameter3']))
-          else:
-              par3.append(0.00)
-          # Parameter4
-          if 'parameter4' in var:
-              par4.append(float(var['parameter4']))
-          else:
-              par4.append(0.00)
+        i += 1
+
+        # Names of the random variables x
+        namevar.append(str(var.varname))
+
+        # Names of the probability density functions of the variables x
+        dist.append(str(var.vardist))
+
+        # Mean value of the random variables x
+        mux0.append(float(var.varmean))
+
+        # Standard deviation of the random variables x
+        if var.varstd == 0.00:
+            sigmax0.append(float(var.varcov) * float(var.varmean))
+        else:
+            sigmax0.append(float(var.varstd))
+
+        # Parameter1
+        if hasattr(var, 'parameter1'):
+            par1.append(float(var.parameter1))
+        else:
+            par1.append(0.00)
+
+        # Parameter2
+        if hasattr(var, 'parameter2'):
+            par2.append(float(var.parameter2))
+        else:
+            par2.append(0.00)
+
+        # Parameter3
+        if hasattr(var, 'parameter3'):
+            par3.append(float(var.parameter3))
+        else:
+            par3.append(0.00)
+
+        # Parameter4
+        if hasattr(var, 'parameter4'):
+            par4.append(float(var.parameter4))
+        else:
+            par4.append(0.00)
           
           
       #
@@ -796,38 +804,46 @@ class TransformationMethods(TransformationBase):
 
         i = -1
         for var in self.reliability.xvar:
-            i += 1
-            # Names of the random variables x
-            namevar.append(str(var['varname']))
-            # Names of the probability density functions of the variables x
-            dist.append(str(var['vardist']))
-            # Mean value of the random variables x
-            mux0.append(float(var['varmean']))
-            # Standard deviation of the random variables x
-            if var['varstd'] == 0.00:
-                sigmax0.append(float(var['varcov']) * float(var['varmean']))
-            else:
-                sigmax0.append(float(var['varstd']))
-            # Parameter1
-            if 'parameter1' in var:
-                par1.append(float(var['parameter1']))
-            else:
-                par1.append(0.00)
-            # Parameter2
-            if 'parameter2' in var:
-                par2.append(float(var['parameter2']))
-            else:
-                par2.append(0.00)
-            # Parameter3
-            if 'parameter3' in var:
-                par3.append(float(var['parameter3']))
-            else:
-                par3.append(0.00)
-            # Parameter4
-            if 'parameter4' in var:
-                par4.append(float(var['parameter4']))
-            else:
-                par4.append(0.00)
+          i += 1
+
+          # Names of the random variables x
+          namevar.append(str(var.varname))
+
+          # Names of the probability density functions of the variables x
+          dist.append(str(var.vardist))
+
+          # Mean value of the random variables x
+          mux0.append(float(var.varmean))
+
+          # Standard deviation of the random variables x
+          if var.varstd == 0.00:
+              sigmax0.append(float(var.varcov) * float(var.varmean))
+          else:
+              sigmax0.append(float(var.varstd))
+
+          # Parameter 1
+          if hasattr(var, 'parameter1'):
+              par1.append(float(var.parameter1))
+          else:
+              par1.append(0.00)
+
+          # Parameter 2
+          if hasattr(var, 'parameter2'):
+              par2.append(float(var.parameter2))
+          else:
+              par2.append(0.00)
+
+          # Parameter 3
+          if hasattr(var, 'parameter3'):
+              par3.append(float(var.parameter3))
+          else:
+              par3.append(0.00)
+
+          # Parameter 4
+          if hasattr(var, 'parameter4'):
+              par4.append(float(var.parameter4))
+          else:
+              par4.append(0.00)
             
            
         #

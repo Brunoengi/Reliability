@@ -7,7 +7,6 @@ class LogNormal(AbstractDistribution):
 
     self.validate_specific_parameters(props)
     super().__init__(props)
-    ValidateClass.has_invalid_key(self, 'varname', 'vardist', 'varmean', 'varstd', 'varcov', 'varhmean')
 
   def validate_specific_parameters(self, props):
     ValidateDictionary.is_dictionary(props)

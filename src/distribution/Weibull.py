@@ -7,7 +7,6 @@ class Weibull(AbstractDistribution):
 
     self.validate_specific_parameters(props)
     self.varinf = float(props['parameter3'])
-    ValidateClass.has_invalid_key(self, 'varname', 'vardist', 'varmean', 'varstd', 'parameter3', 'varhmean','varinf')
 
   def validate_specific_parameters(self, props):
     ValidateDictionary.is_dictionary(props)

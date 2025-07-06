@@ -248,7 +248,7 @@ class MonteCarloMethods:
               i = -1
               for var in self.reliability.xvar:
                   i += 1
-                  var['varhmean'] = xp[imin, i]
+                  var.varhmean = xp[imin, i]
 
           else:
               #
@@ -261,7 +261,7 @@ class MonteCarloMethods:
                   i = -1
                   for var in self.reliability.xvar:
                       i += 1
-                      var['varhmean'] = xp[imax, i]
+                      var.varhmean = xp[imax, i]
 
           #
           #  Step 6 - Evaluation of the error in the estimation of Pf
@@ -389,7 +389,7 @@ class MonteCarloMethods:
               for var in self.reliability.xvar:
                   i += 1
                   xm[i] = xp[imin, i]
-                  var['varhmean'] = xm[i]
+                  var.varhmean = xm[i]
 
           else:
               #
@@ -402,7 +402,7 @@ class MonteCarloMethods:
               for var in self.reliability.xvar:
                   i += 1
                   xm[i] = sum_xwig[i] / sum_wig
-                  var['varhmean'] = xm[i]
+                  var.varhmean = xm[i]
 
           #
           #  Step 6 - Evaluation of the error in the estimation of Pf
@@ -564,7 +564,7 @@ class MonteCarloMethods:
     sum1 = 0.00
     sum2 = 0.00
 
-    varhmean_array = [var['varhmean'] for var in self.reliability.xvar]
+    varhmean_array = [var.varhmean for var in self.reliability.xvar]
     dvar_array = [var['varvalue'] for var in self.reliability.dvar]
 
     gx_based_varhmean = self.reliability.fel(varhmean_array, dvar_array)

@@ -15,7 +15,6 @@ class Uniform(AbstractDistribution):
       self.varhmean = float(self.varmean)
 
     super().__init__(props)
-    ValidateClass.has_invalid_key(self, 'varname', 'vardist', 'varmean', 'varcov', 'varstd', 'varhmean', 'parameter1', 'parameter2')
 
   def validate_specific_parameters(self, props):
     ValidateDictionary.check_possible_arrays_keys(props, ['varmean','varstd'], ['parameter1', 'parameter2'])

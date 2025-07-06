@@ -101,31 +101,17 @@ class Reliability():
 
     def set_xvar(self, xvar, x0): 
       nxvar = len(xvar)
-      for var in xvar:              
-        #
-        # Setting standard variable distribution names, create distribution and update the `var` dictionary with all distribution attributes
-        #
-        var.update(vars(createDistribution(var)))
-        #
-        # Initial values of the aleatory variables
-        #
-        if x0 is None:
-            #
-            # Original mean of the variables x
-            #
-            i = -1
-            x0 = np.zeros(nxvar)
-            for var in xvar:
-                i += 1
-                # Mean value of the random variables x
-                x0[i] = float(var['varmean'])
-                var['varhmean'] = float(var['varmean'])
-        else:
-            i = -1
-            for var in xvar:
-                i += 1
-                # Mean value of the random variables x
-                var['varhmean'] = x0[i]
+      for i, var in enumerate(xvar):              
+          xvar[i] = createDistribution(var)
+
+      if x0 is None:
+          x0 = np.zeros(nxvar)
+          for i, var in enumerate(xvar):
+              x0[i] = float(var.varmean)
+              var.varhmean = float(var.varmean)
+      else:
+          for i, var in enumerate(xvar):
+              var.varhmean = x0[i]
 
       return xvar
 
@@ -166,22 +152,15 @@ class Reliability():
 
     def set_x0(self, x0, nxvar, xvar):
       if x0 is None:
-          #
           # Original mean of the variables x
-          #
-          i = -1
           x0 = np.zeros(nxvar)
-          for var in xvar:
-              i += 1
+          for i, var in enumerate(xvar):
               # Mean value of the random variables x
-              x0[i] = float(var['varmean'])
-              var['varhmean'] = float(var['varmean'])
+              x0[i] = float(var.varmean)
+              var.varhmean = float(var.varmean)
       else:
-          i = -1
-          for var in xvar:
-              i += 1
-              # Mean value of the random variables x
-              var['varhmean'] = x0[i]
+          for i, var in enumerate(xvar):
+              var.varhmean = x0[i]
 
       return x0
 

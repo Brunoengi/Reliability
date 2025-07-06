@@ -10,6 +10,12 @@ class AbstractDistribution(ABC):
     self.set_properties(props)
     self.set_initial_values()
 
+    self.namedist = self.vardist.lower()
+
+    self.sigmafx = float(self.varstd)
+    self.muhx = float(self.varhmean)
+    self.mufx = float(props['varmean'])
+
   @abstractmethod
   def validate_specific_parameters(self, props):
       pass

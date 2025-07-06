@@ -8,17 +8,17 @@ class Beta(AbstractDistribution):
 
     self.validate_specific_parameters(props)
 
-    a = props['parameter1']
-    b = props['parameter2']
-    q = props['parameter3']
-    r = props['parameter4']
+    self.a = props['parameter1']
+    self.b = props['parameter2']
+    self.q = props['parameter3']
+    self.r = props['parameter4']
 
-    self.varmean = float(a + q / (q + r) * (b - a))
-    self.varstd = float(np.sqrt((q * r) / ((q + r) **2 * (q + r + 1)) * (b - a) ** 2))
+    self.varmean = float(self.a + self.q / (self.q + self.r) * (self.b - self.a))
+    self.varstd = float(np.sqrt((self.q * self.r) / ((self.q + self.r) **2 * (self.q + self.r + 1)) * (self.b - self.a) ** 2))
     self.varhmean = float(self.varmean)
 
     super().__init__(props)
-    ValidateClass.has_invalid_key(self, 'varname', 'vardist','varmean','varcov','varstd','varhmean','parameter1','parameter2','parameter3','parameter4')
+    
 
   def validate_specific_parameters(self, props):
     ValidateDictionary.is_dictionary(props)
