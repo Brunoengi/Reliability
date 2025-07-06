@@ -73,7 +73,6 @@ class RandomVariablesGenerator:
       """
       Random variables generator for Monte Carlo Simulation methods, only to correlated variables
       """
-      print(self.reliability.xvar)
       xvar_correlated = [self.reliability.xvar[i] for i in indexes_correlated_xvar]
       nxvar_correlated = len(xvar_correlated)
 
@@ -113,27 +112,10 @@ class RandomVariablesGenerator:
           zk_col = zk[:, i]
 
           if namedist == 'gauss':
-              x[:, i] = muhx + sigmahx * zk_col
-              fx = norm.pdf(x[:, i], mufx, sigmafx)
-              hx = norm.pdf(x[:, i], muhx, sigmahx)
-              zf[:, i] = (x[:, i] - mufx) / sigmafx
+              x[:, i], fx, hx, zf[:, i] = var.transform(zk[:, i])
 
           elif namedist == 'uniform':
-              a = float(var['parameter1'])
-              b = float(var['parameter2'])
-
-              def uniform_limits(vars, mux, sigmax):
-                  a_, b_ = vars
-                  eq1 = (a_ + b_) / 2 - mux
-                  eq2 = (b_ - a_) / np.sqrt(12) - sigmax
-                  return [eq1, eq2]
-
-              ah, bh = fsolve(uniform_limits, (a, b), args=(muhx, sigmahx))
-              uk = norm.cdf(zk_col)
-              x[:, i] = ah + (bh - ah) * uk
-              zf[:, i] = norm.ppf(uk)
-              fx = uniform.pdf(x[:, i], a, b - a)
-              hx = uniform.pdf(x[:, i], ah, bh - ah)
+              x[:, i], fx, hx, zf[:, i] = var.transform(zk[:, i])
 
           elif namedist == 'lognorm':
               zetafx = sqrt(log(1 + (sigmafx / mufx) ** 2))
@@ -333,8 +315,8 @@ class RandomVariablesGenerator:
         #
         
         elif namedist.lower() == 'uniform':
-            a = float(var['parameter1'])
-            b = float(var['parameter2'])
+            a = float(var.parameter1)
+            b = float(var.parameter2)
             ah, bh =  fsolve(uniform_limits, (1, 1), args= (muhx, sigmahx))  
                             
             

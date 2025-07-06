@@ -459,7 +459,7 @@ class MonteCarloMethods:
 
         ## Using varhmean calculate based on x0
         for var, mean_value in zip(self.reliability.xvar, self.reliability.x0):
-          var['varhmean'] = mean_value
+          var.varhmean = mean_value
 
         # Matrix dmatrix(ns, self.reliability.ndvar) for ns Monte Carlo simulations and self.reliability.ndvar design variables
         dmatrix = np.array([self.reliability.d.T] * ns)

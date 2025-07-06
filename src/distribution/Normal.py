@@ -13,8 +13,7 @@ from scipy.stats import norm
 
 class Normal(AbstractDistribution):
   def __init__(self, props: dict):
-      
-    print(props)
+    
     self.validate_specific_parameters(props)
     super().__init__(props) 
 
@@ -26,7 +25,7 @@ class Normal(AbstractDistribution):
     ValidateDictionary.check_keys_count(props, 1, 'varcov', 'varstd')
     ValidateDictionary.check_if_exists(props, 'varcov', lambda d, k: ValidateDictionary.is_greater_or_equal_than(d, k, 0))
 
-  def transform(self, zk_col: np.ndarray, i):
+  def transform(self, zk_col: np.ndarray):
     x = self.muhx + self.sigmafx * zk_col
     fx = norm.pdf(x, self.mufx, self.sigmafx)
     hx = norm.pdf(x, self.muhx, self.sigmafx)
