@@ -1,7 +1,7 @@
 """
 Created on Mon Feb 08 17:12:00 2021
 Reliabilty Analysis
-Example 7.9 - Nonlinear limit state function with non-normal correlated variables
+Example 7.6 - Nonlinear limit state function with normal correlated variables
 @author: MVREAL
 """
 from main import *
@@ -22,11 +22,13 @@ def gfunction(x, d):
 #
 # Random variables: name, probability distribution, mean and coefficient of variation
 
+
 xvar = [
-    {'varname': 'Y', 'vardist': 'lognormal', 'varmean': 40.00, 'varcov': 0.125},
-    {'varname': 'Z', 'vardist': 'lognormal', 'varmean': 50.00, 'varcov': 0.05},
-    {'varname': 'M', 'vardist': 'gumbel', 'varmean': 1000.00, 'varcov': 0.20}
+    {'varname': 'Y', 'vardist': 'normal', 'varmean': 40.00, 'varcov': 0.125},
+    {'varname': 'Z', 'vardist': 'normal', 'varmean': 50.00, 'varcov': 0.05},
+    {'varname': 'M', 'vardist': 'normal', 'varmean': 1000.00, 'varcov': 0.20}
 ]
+
 # Design variables
 
 dvar = [
@@ -40,7 +42,8 @@ corrmatrix = [[1.00, 0.40, 0.00],
               [0.40, 1.00, 0.00],
               [0.00, 0.00, 1.00]]
 #
-# MCS enhanced method
+# FORM method
 #
 beam = Reliability(xvar, dvar, gfunction, None, corrmatrix)
-beam.sampling_enhanced(100, 5000, 0.01)
+beam.form2(iHLRF=True, toler=1.e-6)
+#
