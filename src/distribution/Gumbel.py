@@ -6,49 +6,75 @@ from numpy import sqrt, pi, log
 import numpy as np
 
 class Gumbel(AbstractDistribution):
-  def __init__(self, props: dict):
-    self.validate_specific_parameters(props)
-    super().__init__(props)
+    def __init__(self, props: dict):
+        self.validate_specific_parameters(props)
+        super().__init__(props)
 
-    # Euler–Mascheroni constant
-    self.euler_gamma = 0.5772156649015329
+        # Euler–Mascheroni constant
+        self.euler_gamma = 0.5772156649015329
 
-    # Parameters of the target distribution f(x)
-    self.alphaf = pi / sqrt(6) / self.sigmafx
-    self.ufx = self.mufx - self.euler_gamma / self.alphaf
-    self.betafx = 1 / self.alphaf
+        # Parameters of the target distribution f(x)
+        self.alphaf = pi / sqrt(6.0) / self.sigmafx
+        self.ufx = self.mufx - self.euler_gamma / self.alphaf
+        self.betafx = 1.0 / self.alphaf
 
-    # Initialize h(x) with the same parameters as f(x)
-    self.update_sampling(nsigma=1.0)
+        # Initialize h(x) with the same parameters as f(x)
+        self.update_sampling(nsigma=1.0)
 
-  def validate_specific_parameters(self, props):
-      ValidateDictionary.is_dictionary(props)
-      ValidateDictionary.check_possible_arrays_keys(props, ['varmean', 'varstd'], ['varmean', 'varcov'])
-      ValidateDictionary.check_if_exists(props, 'varcov', lambda d, k: ValidateDictionary.is_greater_or_equal_than(d, k, 0))
+    def validate_specific_parameters(self, props):
+        ValidateDictionary.is_dictionary(props)
+        ValidateDictionary.check_possible_arrays_keys(props, ['varmean', 'varstd'], ['varmean', 'varcov'])
+        ValidateDictionary.check_if_exists(props, 'varcov', lambda d, k: ValidateDictionary.is_greater_or_equal_than(d, k, 0))
 
-  def update_sampling(self, nsigma: float = 1.0):
-      """Updates the parameters of the sampling distribution h(x) based on nsigma."""
-      self.sigmahx = self.sigmafx * nsigma
-      self.muhx = self.mufx
+    def update_sampling(self, nsigma: float = 1.0):
+        """Updates the parameters of the sampling distribution h(x) based on nsigma."""
+        self.sigmahx = self.sigmafx * nsigma
+        self.muhx = self.mufx
 
-      self.alphah = pi / sqrt(6) / self.sigmahx
-      self.uhx = self.muhx - self.euler_gamma / self.alphah
-      self.betahx = 1 / self.alphah
+        self.alphah = pi / sqrt(6.0) / self.sigmahx
+        self.uhx = self.muhx - self.euler_gamma / self.alphah
+        self.betahx = 1.0 / self.alphah
 
-  def transform(self, zk_col: np.ndarray):
-    if not hasattr(self, 'uhx') or not hasattr(self, 'betahx'):
-      raise RuntimeError("Parâmetros de h(x) não definidos. Chame update_sampling(nsigma).")
+    def transform(self, zk_col: np.ndarray):
+        """
+        Transform a standard normal vector zk_col into x ~ h(x),
+        and compute fx, hx, and the transformed standard normal zf.
+        """
+        if not hasattr(self, 'uhx') or not hasattr(self, 'betahx'):
+            raise RuntimeError("Sampling distribution parameters not defined. Call update_sampling(nsigma) first.")
 
-    # Transform standard variable zk to Gumbel distribution h(x)
-    uk = norm.cdf(zk_col)  # u ~ Uniform(0,1)
-    x = self.uhx - self.betahx * log(log(1 / uk))
+        uk = norm.cdf(zk_col)
+        x = self.uhx - self.betahx * np.log(-np.log(uk))
 
-    # Calculates zf based on the target distribution f(x)
-    cdf_fx = gumbel_r.cdf(x, loc=self.ufx, scale=self.betafx)
-    zf = norm.ppf(cdf_fx)
+        fx = self.density_fx(x)
+        hx = self.density_hx(x)
+        zf = norm.ppf(gumbel_r.cdf(x, loc=self.ufx, scale=self.betafx))
+        return x, fx, hx, zf
 
-    # Calculates densities f(x) and h(x)
-    fx = gumbel_r.pdf(x, loc=self.ufx, scale=self.betafx)
-    hx = gumbel_r.pdf(x, loc=self.uhx, scale=self.betahx)
+    def sample(self, ns: int):
+        """
+        Sample x from the sampling distribution h(x).
+        """
+        return gumbel_r.rvs(loc=self.uhx, scale=self.betahx, size=ns)
 
-    return x, fx, hx, zf
+    def density_fx(self, x: np.ndarray):
+        """
+        Evaluate the PDF of the target distribution f(x).
+        """
+        return gumbel_r.pdf(x, loc=self.ufx, scale=self.betafx)
+
+    def density_hx(self, x: np.ndarray):
+        """
+        Evaluate the PDF of the sampling distribution h(x).
+        """
+        return gumbel_r.pdf(x, loc=self.uhx, scale=self.betahx)
+
+    def sample_direct(self, ns: int):
+        """
+        Sample x from h(x), and return f(x), h(x) evaluated at x.
+        Useful for direct sampling in Monte Carlo methods.
+        """
+        x = self.sample(ns)
+        fx = self.density_fx(x)
+        hx = self.density_hx(x)
+        return x, fx, hx

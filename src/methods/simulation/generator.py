@@ -17,7 +17,7 @@ class RandomVariablesGenerator:
       ## Get all properties about Reliability
       self.reliability = parent.reliability
 
-  def main(self, ns, nsigma=1.00, iprint=False):
+  def main(self, ns, iprint=False):
         """
         Method to generate random variables, check correlation matrix to use var_gen (correlated variables) or var_rvs (uncorrelated variables )
 
@@ -34,7 +34,6 @@ class RandomVariablesGenerator:
 
         #
         # Standard deviation multiplier for MC-IS
-        
         #
         # Step 1 - Generation of the random numbers according to their appropriate distribution
         #
@@ -45,10 +44,10 @@ class RandomVariablesGenerator:
         fxu = np.ones(ns)
         
         if index_correlated:
-          xpc, wpc, fxc = self.var_gen(ns, index_correlated, nsigma)
+          xpc, wpc, fxc = self.var_gen(ns, index_correlated)
         
         if index_uncorrelated:
-          xpu, wpu, fxu = self.var_rvs(ns, index_uncorrelated, nsigma)
+          xpu, wpu, fxu = self.var_rvs(ns, index_uncorrelated)
         
 
 
@@ -69,7 +68,7 @@ class RandomVariablesGenerator:
 
         return x, wp, fx
 
-  def var_gen(self, ns, indexes_correlated_xvar, nsigma=1.00, iprint=False):
+  def var_gen(self, ns, indexes_correlated_xvar, iprint=False):
       """
       Random variables generator for Monte Carlo Simulation methods, only to correlated variables
       """
@@ -110,217 +109,24 @@ class RandomVariablesGenerator:
 
       return x, weight, fxixj 
   
-  def var_rvs(self, ns, indexes_uncorrelated_xvar, nsigma=1.00, iprint=False):
+  def var_rvs(self, ns, indexes_uncorrelated_xvar, iprint=False):
+    """
+    Random variables generator for Monte Carlo Simulation methods (uncorrelated variables only)
     """
 
-        Random variables generator for the Monte Carlo Simulation methods, only to uncorrelated variables
-
-    """
-
-    #Get only correlated variables
     xvar_uncorrelated = [self.reliability.xvar[i] for i in indexes_uncorrelated_xvar]
     nxvar_uncorrelated = len(xvar_uncorrelated)
 
-    def fkapa(kapa, deltax, gsignal):
-        fk = 1.00 + deltax ** 2 - gamma(1.00 + gsignal * 2.00 / kapa) / gamma(1.00 + gsignal * 1.00 / kapa) ** 2
-        return fk
-    
-    def beta_limits(vars, mux, sigmax, q, r):
-        a, b = vars
-        eq1 = a + q / (q + r) * (b - a) - mux
-        eq2 = ((q * r) / ((q + r) ** 2 * (q + r + 1))) ** (0.50) * (b - a) - sigmax
-        return [eq1, eq2]
-    
-    def uniform_limits(vars, mux, sigmax):
-        a, b = vars
-        eq1 = (a + b) / 2 - mux
-        eq2 = (b - a) / np.sqrt(12.) - sigmax
-        return [eq1, eq2]
-
-    
-
     x = np.zeros((ns, nxvar_uncorrelated))
     weight = np.ones(ns)
-    fx = np.zeros(ns)
-    hx = np.zeros(ns)
     fxixj = np.ones(ns)
-    
-    #
-    # Step 1 - Determination of equivalent correlation coefficients and
-    #          Jacobian matrix Jzy
-    #
-    #
-    # Cholesky decomposition of the correlation matrix
-    #
 
-    #L = scipy.linalg.cholesky(self.reliability.correlation.Rz_rectify, lower=True)
-    #Jzy = np.copy(L)
-
-    #
-    # Generation of Gaussian random numbers
-    #
-
-    
-    zf = np.zeros((ns, nxvar_uncorrelated))
-    
-    #
-    i = -1
-    for var in xvar_uncorrelated:
-        i += 1
-        if var.varstd == 0.00:
-            var.varstd = float(var.varcov) * float(var.varmean)
-        if iprint:
-            print(self.reliability.xvar[i])
-        #
-        #
-        # Normal distribution
-        #
-        namedist = var.namedist
-        mufx = var.mufx
-        sigmafx = var.sigmafx
-        muhx = var.muhx
-        sigmahx = nsigma * sigmafx
-
-        if namedist.lower() == 'gauss':
-            x[:, i] = norm.rvs(loc=muhx, scale=sigmahx, size=ns)
-            fx = norm.pdf(x[:, i], mufx, sigmafx)
-            hx = norm.pdf(x[:, i], muhx, sigmahx)
-            weight = weight * (fx / hx)
-            fxixj = fxixj * fx 
-        #
-        # Uniform or constant distribution
-        #
+    for i, var in enumerate(xvar_uncorrelated):
+            x[:, i], fx, hx = var.sample_direct(ns)
+            ratio = fx / hx
+            weight *= ratio
+            fxixj *= fx
         
-        elif namedist.lower() == 'uniform':
-            a = float(var.parameter1)
-            b = float(var.parameter2)
-            ah, bh =  fsolve(uniform_limits, (1, 1), args= (muhx, sigmahx))  
-                            
-            
-            x[:, i] = uniform.rvs(loc=ah, scale= (bh-ah), size = ns)
-            fx = uniform.pdf(x[:, i], a, b-a)
-            hx = uniform.pdf(x[:, i], ah, bh-ah)
-            weight = weight * (fx / hx)
-            fxixj = fxixj * fx 
-        #
-        # Lognormal distribution
-        #
-        elif namedist.lower() == 'lognorm':
-            zetafx = np.sqrt(np.log(1.00 + (sigmafx / mufx) ** 2))
-            lambdafx = np.log(mufx) - 0.5 * zetafx ** 2
-            zetahx = np.sqrt(np.log(1.00 + (sigmahx / muhx) ** 2))
-            lambdahx = np.log(muhx) - 0.5 * zetahx ** 2
-            x[:, i] = lognorm.rvs(s=zetahx, loc=0.00, scale=np.exp(lambdahx), size=ns)
-            fx = lognorm.pdf(x[:, i], s=zetafx, loc=0.00, scale=np.exp(lambdafx))
-            hx = lognorm.pdf(x[:, i], s=zetahx, loc=0.00, scale=np.exp(lambdahx))
-            weight = weight * (fx / hx)
-            fxixj = fxixj * fx 
-
-        #
-        # Gumbel distribution
-        #
-        elif namedist.lower() == 'gumbel':
-            sigmahx = nsigma * sigmafx
-            alphafn = np.pi / np.sqrt(6.00) / sigmafx
-            ufn = mufx - np.euler_gamma / alphafn
-            betafn = 1.00 / alphafn
-            alphahn = np.pi / np.sqrt(6.00) / sigmahx
-            uhn = muhx - np.euler_gamma / alphahn
-            betahn = 1.00 / alphahn
-            x[:, i] = gumbel_r.rvs( loc=uhn, scale=betahn, size=ns)
-            fx = gumbel_r.pdf(x[:, i], ufn, betafn)
-            hx = gumbel_r.pdf(x[:, i], uhn, betahn)
-            weight = weight * (fx / hx)
-            fxixj = fxixj * fx 
-
-        #
-        # Frechet distribution
-        #
-        elif namedist.lower() == 'frechet':
-            deltafx = sigmafx / mufx
-            kapa0 = 2.50
-            gsinal = -1.00
-            kapaf = scipy.optimize.newton(fkapa, kapa0, args=(deltafx, gsinal))
-            vfn = mufx / gamma(1.00 - 1.00 / kapaf)
-            deltahx = sigmahx / muhx
-            kapa0 = 2.50
-            gsinal = -1.00
-            kapah = scipy.optimize.newton(fkapa, kapa0, args=(deltahx, gsinal))
-            vhn = muhx / gamma(1.00 - 1.00 / kapah)
-            x[:, i] = invweibull.rvs(c=kapah, loc=0.00, scale=vhn, size=ns)
-            fx = invweibull.pdf(x[:, i], c=kapaf, loc=0.00, scale=vfn)
-            hx = invweibull.pdf(x[:, i], c=kapah, loc=0.00, scale=vhn)
-            weight = weight * (fx / hx)
-            fxixj = fxixj * fx 
-
-        #
-        #
-        # Weibull distribution - minimum
-        #
-        elif namedist.lower() == 'weibull':
-            epsilon = float(var.epsilon)
-            deltafx = sigmafx / (mufx - epsilon)
-            kapa0 = 2.50
-            gsinal = 1.00
-            kapaf = scipy.optimize.newton(fkapa, kapa0, args=(deltafx, gsinal))
-            w1f = (mufx - epsilon) / gamma(1.00 + 1.00 / kapaf) + epsilon
-            deltahx = sigmahx / (muhx - epsilon)
-            kapa0 = 2.50
-            gsinal = 1.00
-            kapah = scipy.optimize.newton(fkapa, kapa0, args=(deltahx, gsinal))
-            w1h = (muhx - epsilon) / gamma(1.00 + 1.00 / kapah) + epsilon
-            x[:, i] = weibull_min.rvs(c=kapah, loc=epsilon, scale=w1h-epsilon, size=ns)
-            fx = weibull_min.pdf(x[:, i], c=kapaf, loc=epsilon, scale=w1f-epsilon)
-            hx = weibull_min.pdf(x[:, i], c=kapah, loc=epsilon, scale=w1h-epsilon)
-            weight = weight * (fx / hx)
-            fxixj = fxixj * fx 
-
-        #
-        #
-        # Beta distribution
-        #
-        elif namedist.lower() == 'beta':
-            
-           
-            loc = var.a
-            scale = (var.b - var.a)
-            
-            
-            ah, bh =  fsolve(beta_limits, (1, 1), args= ( muhx, sigmahx, var.q, var.r))  
-            loch = ah
-            scaleh = (bh - ah)        
-            x[:, i] = beta_dist.rvs(var.q, var.r, loch, scaleh, size=ns)
-            fx = beta_dist.pdf(x[:, i], var.q, var.r, loc, scale)
-            hx = beta_dist.pdf(x[:, i], var.q, var.r, loch, scaleh)
-            weight = weight * (fx / hx)
-            fxixj = fxixj * fx 
-
-        #
-        #
-        # Gamma distribution
-        #
-        elif namedist.lower() == 'gamma':
-            
-            deltafx = sigmafx / mufx
-            k = 1. / deltafx ** 2
-            v = k / mufx
-            a = k
-            loc = 0.00
-            scale = 1. / v
-          
-            deltahx = sigmahx / muhx
-            kh = 1. / deltahx ** 2
-            vh = kh / muhx
-            ah = kh
-            loch = 0.00
-            scaleh = 1. / vh
-            x[:, i] = gamma_dist.rvs(ah, loch, scaleh, size=ns)
-            fx = gamma_dist.pdf(x[:, i], a, loc, scale)
-            hx = gamma_dist.pdf(x[:, i], ah, loch, scaleh)
-            weight = weight * (fx / hx)
-            fxixj = fxixj * fx 
-            
-
     return x, weight, fxixj
   
 

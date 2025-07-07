@@ -2,8 +2,9 @@ from distribution.AbstractDistribution import AbstractDistribution
 from utils.validate.base_types.validate_dictionary import ValidateDictionary
 from utils.validate.base_types.validate_class import ValidateClass 
 import numpy as np
-from scipy.stats import norm
+from scipy.stats import norm, lognorm
 from math import sqrt, log
+
 
 class LogNormal(AbstractDistribution):
     def __init__(self, props: dict):
@@ -30,13 +31,40 @@ class LogNormal(AbstractDistribution):
         self.lambdahx = log(self.muhx) - 0.5 * self.zetahx ** 2
 
     def transform(self, zk_col: np.ndarray):
-        # Transform from standard normal to lognormal h(x)
-        x = np.exp(self.lambdahx + zk_col * self.zetahx)
-        # Compute z_f associated with target distribution f(x)
+        """
+        Transform a standard normal vector zk_col into x ~ h(x),
+        and compute fx, hx, and the transformed standard normal zf.
+        """
+        x = self.muhx + self.sigmahx * zk_col
+        fx = self.density_fx(x)
+        hx = self.density_hx(x)
         zf = (np.log(x) - self.lambdafx) / self.zetafx
-        # PDF of the original distribution f(x), modeled as normal in log space
-        fx = norm.pdf(np.log(x), loc=self.lambdafx, scale=self.zetafx)
-        # PDF of the sampling distribution h(x), also modeled as normal in log space
-        hx = norm.pdf(np.log(x), loc=self.lambdahx, scale=self.zetahx)
-
         return x, fx, hx, zf
+    
+    def sample(self, ns: int):
+        """
+        Sample x from the sampling distribution h(x).
+        """
+        return lognorm.rvs(s=self.zetahx, loc=0.0, scale=np.exp(self.lambdahx), size=ns)
+    
+    def density_fx(self, x: np.ndarray):
+        """
+        Evaluate the PDF of the target distribution f(x).
+        """
+        return lognorm.pdf(x, s=self.zetafx, loc=0.0, scale=np.exp(self.lambdafx))
+    
+    def density_hx(self, x: np.ndarray):
+        """
+        Evaluate the PDF of the sampling distribution h(x).
+        """
+        return lognorm.pdf(x, s=self.zetahx, loc=0.0, scale=np.exp(self.lambdahx))
+    
+    def sample_direct(self, ns: int):
+        """
+        Sample x from h(x), and return f(x), h(x) evaluated at x.
+        This is useful for Monte Carlo sampling without transformation.
+        """
+        x = self.sample(ns)
+        fx = self.density_fx(x)
+        hx = self.density_hx(x)
+        return x, fx, hx

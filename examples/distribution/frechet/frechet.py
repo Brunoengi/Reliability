@@ -32,5 +32,5 @@ dvar = [
 # MC
 #
 beam = Reliability(xvar, dvar, gfunction, None, None)
-beam.mc(100, 5000, 0.01)
+beam.mc(100, 5000, 0.01, 1)
 #

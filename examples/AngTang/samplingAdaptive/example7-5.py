@@ -4,9 +4,8 @@ Reliabilty Analysis
 Example 7.5 - Linear limit state function with normal correlated variables
 @author: MVREAL
 """
-import numpy as np
 from main import *
-import time
+
 
 #
 # Step 0 - Column: g(R, G, Q, W) = R-G-Q-W = 0

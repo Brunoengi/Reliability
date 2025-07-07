@@ -40,5 +40,5 @@ dvar = [
 # FORM method
 #
 beam = Reliability(xvar, dvar, gfunction, None, None)
-beam.mc(30, 5000, 0.05, 1.00)
+beam.mc(100, 5000, 0.05)
 #

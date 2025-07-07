@@ -38,17 +38,44 @@ class Gama(AbstractDistribution):
         self.loch = 0
         self.scaleh = 1 / self.vh
 
+    def sample(self, n: int):
+        """Draw n samples from the importance distribution h(x)."""
+        return gamma_dist.rvs(self.ah, loc=self.loch, scale=self.scaleh, size=n)
+
+    def density_fx(self, x: np.ndarray):
+        """Evaluate the target PDF f(x) at x."""
+        return gamma_dist.pdf(x, self.a, loc=self.loc, scale=self.scale)
+
+    def density_hx(self, x: np.ndarray):
+        """Evaluate the importance PDF h(x) at x."""
+        return gamma_dist.pdf(x, self.ah, loc=self.loch, scale=self.scaleh)
+
+    def sample_direct(self, n: int):
+        """
+        Draw n samples directly from the target distribution f(x)
+        and evaluate f(x) and h(x) at those points.
+        """
+        x = gamma_dist.rvs(self.a, loc=self.loc, scale=self.scale, size=n)
+        fx = self.density_fx(x)
+        hx = self.density_hx(x)
+        return x, fx, hx
+
     def transform(self, zk_col: np.ndarray):
+        """
+        Transform standard normal samples to physical space using h(x),
+        then compute corresponding densities and map to standard normal space using f(x).
+        """
         uk = norm.cdf(zk_col)
 
-        # Transform standard normal to gamma h(x)
+        # Transform from standard normal space to physical space using h(x)
         x = gamma_dist.ppf(uk, self.ah, loc=self.loch, scale=self.scaleh)
 
-        # Compute z_f using the target distribution
+        # Evaluate densities using existing methods
+        fx = self.density_fx(x)
+        hx = self.density_hx(x)
+
+        # Map back to standard normal space using f(x)
         cdfx = gamma_dist.cdf(x, self.a, loc=self.loc, scale=self.scale)
         zf = norm.ppf(cdfx)
-
-        fx = gamma_dist.pdf(x, self.a, loc=self.loc, scale=self.scale)
-        hx = gamma_dist.pdf(x, self.ah, loc=self.loch, scale=self.scaleh)
 
         return x, fx, hx, zf

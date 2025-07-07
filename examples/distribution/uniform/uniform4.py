@@ -29,4 +29,4 @@ corrmatrix = [[1.00, 0.50],
 # MCS method
 #
 test = Reliability(xvar, dvar, gfunction, None, corrmatrix)
-test.mc(100, 5000, 0.005)
+test.mc(100, 5000, 0.005, 2)

@@ -58,7 +58,35 @@ class Uniform(AbstractDistribution):
         x = self.ah + (self.bh - self.ah) * uk
         zf = norm.ppf(uniform.cdf(x, loc=self.a, scale=self.b - self.a))
 
-        fx = uniform.pdf(x, loc=self.a, scale=self.b - self.a)
-        hx = uniform.pdf(x, loc=self.ah, scale=self.bh - self.ah)
-
+        fx = self.density_fx(x)
+        hx = self.density_hx(x)
+        
         return x, fx, hx, zf
+    
+    def sample(self, ns: int):
+        """
+        Sample x from the sampling distribution h(x).
+        """
+        return uniform.rvs(loc=self.ah, scale=self.bh - self.ah, size=ns)
+
+    def density_fx(self, x: np.ndarray):
+        """
+        Evaluate the PDF of the target distribution f(x).
+        """
+        return uniform.pdf(x, loc=self.a, scale=self.b - self.a)
+    
+    def density_hx(self, x: np.ndarray):
+        """
+        Evaluate the PDF of the sampling distribution h(x).
+        """
+        return uniform.pdf(x, loc=self.ah, scale=self.bh - self.ah)
+    
+    def sample_direct(self, ns: int):
+        """
+        Sample x from h(x), and return f(x), h(x) evaluated at x.
+        This is useful for Monte Carlo sampling without transformation.
+        """
+        x = self.sample(ns)
+        fx = self.density_fx(x)
+        hx = self.density_hx(x)
+        return x, fx, hx

@@ -38,16 +38,49 @@ class Frechet(AbstractDistribution):
         self.vhn = self.muhx / gamma(1 - 1 / self.kapah)
 
     def transform(self, zk_col: np.ndarray):
-        uk = norm.cdf(zk_col)  # z ~ N(0,1) -> U(0,1)
-        x = self.vhn / (np.log(1 / uk)) ** (1 / self.kapah)
+      """
+      Transforms a standard normal variable zk_col into the target distribution f(x),
+      and returns the transformed x, fx, hx, and zf.
+      """
+      uk = norm.cdf(zk_col)
+      x = self.vhn / (np.log(1 / uk)) ** (1 / self.kapah)
 
-        ynf = x / self.vfn
-        ynh = x / self.vhn
+      cdfx = invweibull.cdf(x / self.vfn, self.kapaf)
+      zf = norm.ppf(cdfx)
 
-        cdfx = invweibull.cdf(ynf, self.kapaf)
-        zf = norm.ppf(cdfx)
+      fx = self.density_fx(x)
+      hx = self.density_hx(x)
 
-        fx = invweibull.pdf(ynf, self.kapaf) / self.vfn
-        hx = invweibull.pdf(ynh, self.kapah) / self.vhn
+      return x, fx, hx, zf
+    
+    def sample(self, ns: int):
+        """
+        Amostra valores de x a partir da distribuição de amostragem h(x).
+        """
+        u = np.random.rand(ns)
+        x = self.vhn / (np.log(1 / u)) ** (1 / self.kapah)
+        return x
 
-        return x, fx, hx, zf
+    def density_fx(self, x: np.ndarray):
+        """
+        Avalia a densidade da distribuição alvo f(x) nos pontos x.
+        """
+        y = x / self.vfn
+        return invweibull.pdf(y, self.kapaf) / self.vfn
+
+    def density_hx(self, x: np.ndarray):
+        """
+        Avalia a densidade da distribuição de amostragem h(x) nos pontos x.
+        """
+        y = x / self.vhn
+        return invweibull.pdf(y, self.kapah) / self.vhn
+
+    def sample_direct(self, ns: int):
+        """
+        Amostra x ~ h(x) e computa fx, hx nos pontos amostrados.
+        Retorna: x, fx, hx
+        """
+        x = self.sample(ns)
+        fx = self.density_fx(x)
+        hx = self.density_hx(x)
+        return x, fx, hx

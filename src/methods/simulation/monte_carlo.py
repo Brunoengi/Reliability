@@ -20,7 +20,7 @@ class MonteCarloMethods:
       self.generator = RandomVariablesGenerator(self)
 
 
-  def mc(self, nc, ns, delta_lim, nsigma=1.00, igraph=True, iprint=True):
+  def mc(self, nc, ns, delta_lim, igraph=True, iprint=True):
         """
         Monte Carlo Simulation Method
         nc Cycles
@@ -50,11 +50,6 @@ class MonteCarloMethods:
         #     print('Correlation Matrix after Nataf correction:')
         #     print(self.reliability.correlation.Rz_rectify)
         #
-        # Standard deviation multiplier for MC-IS
-        #
-        #
-        nsigma = 1.00
-
         #
         #
         # Number of Monte Carlo simulations
@@ -151,7 +146,7 @@ class MonteCarloMethods:
             "ttotal": ttotal
             }
       
-  def adaptive(self, nc, ns, delta_lim, nsigma=1.50, igraph=True, iprint=True):
+  def adaptive(self, nc, ns, delta_lim, igraph=True, iprint=True):
       """
       Monte Carlo Simulations with Importance Sampling (MC-IS)
       Importance sampling with adaptative technique
@@ -176,7 +171,6 @@ class MonteCarloMethods:
       sum2 = 0.00
       fxmax = 0.00
       fxmax_cycle = np.zeros(nc)
-      uk_cycle = np.zeros((ns, self.reliability.nxvar))
 
       #
       # Correlation matrix is self.reliability.Rz
@@ -296,7 +290,7 @@ class MonteCarloMethods:
           "ttotal": ttotal
       }
 
-  def bucher(self, nc, ns, delta_lim, nsigma=1.50, igraph=True, iprint=True):
+  def bucher(self, nc, ns, delta_lim, igraph=True, iprint=True):
       """
       Monte Carlo Simulations with Importance Sampling (MC-IS)
       Importance sampling with adaptive technique
@@ -320,7 +314,6 @@ class MonteCarloMethods:
       pf_mean = np.zeros(nc)
       sum1 = 0.00
       sum2 = 0.00
-      uk_cycle = np.zeros((ns, self.reliability.nxvar))
 
       #
       # Correlation matrix is self.reliability.Rz

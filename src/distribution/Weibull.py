@@ -40,21 +40,54 @@ class Weibull(AbstractDistribution):
         self.w1h = (self.muhx - self.epsilon) / gamma(1 + 1 / self.kapah) + self.epsilon
 
     def transform(self, zk_col: np.ndarray):
-        if not hasattr(self, 'w1h') or not hasattr(self, 'kapah'):
-            raise RuntimeError("Sampling distribution parameters not defined. Call update_sampling(nsigma) first.")
+      """
+      Transforms a standard normal variable zk_col into the Weibull distribution using the sampling distribution h(x),
+      and returns x, f(x), h(x) and the equivalent standard normal variable zf.
+      """
 
-        uk = norm.cdf(zk_col)  # Transform standard normal to uniform(0,1)
+      uk = norm.cdf(zk_col)  # Transform standard normal to uniform(0,1)
 
-        # Sample Weibull (minimum) distribution with shift epsilon
-        x = (self.w1h - self.epsilon) * (np.log(1 / (1 - uk))) ** (1 / self.kapah) + self.epsilon
+      # Sample Weibull (minimum) distribution with shift epsilon
+      x = (self.w1h - self.epsilon) * (-np.log(1 - uk))**(1 / self.kapah) + self.epsilon
 
-        ynf = (x - self.epsilon) / (self.w1f - self.epsilon)
-        ynh = (x - self.epsilon) / (self.w1h - self.epsilon)
+      fx = self.density_fx(x)
+      hx = self.density_hx(x)
 
-        cdfx = weibull_min.cdf(ynf, self.kapaf)
-        zf = norm.ppf(cdfx)
+      cdfx = weibull_min.cdf((x - self.epsilon) / (self.w1f - self.epsilon), c=self.kapaf)
+      zf = norm.ppf(cdfx)
 
-        fx = weibull_min.pdf(ynf, self.kapaf) / (self.w1f - self.epsilon)
-        hx = weibull_min.pdf(ynh, self.kapah) / (self.w1h - self.epsilon)
+      return x, fx, hx, zf
+    
+    def sample(self, ns: int):
+      """
+      Samples ns points from the sampling distribution h(x).
+      """
+      return weibull_min.rvs(
+          c=self.kapah,
+          loc=self.epsilon,
+          scale=self.w1h - self.epsilon,
+          size=ns
+      )
 
-        return x, fx, hx, zf
+    def density_fx(self, x: np.ndarray):
+        """
+        Computes the target density f(x) for given values of x.
+        """
+        y = (x - self.epsilon) / (self.w1f - self.epsilon)
+        return weibull_min.pdf(y, c=self.kapaf) / (self.w1f - self.epsilon)
+
+    def density_hx(self, x: np.ndarray):
+        """
+        Computes the sampling density h(x) for given values of x.
+        """
+        y = (x - self.epsilon) / (self.w1h - self.epsilon)
+        return weibull_min.pdf(y, c=self.kapah) / (self.w1h - self.epsilon)
+
+    def sample_direct(self, ns: int):
+        """
+        Generates samples from h(x) and returns x, f(x), h(x).
+        """
+        x = self.sample(ns)
+        fx = self.density_fx(x)
+        hx = self.density_hx(x)
+        return x, fx, hx

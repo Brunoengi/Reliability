@@ -45,5 +45,5 @@ dvar = [
 # MCS  method
 #
 column = Reliability(xvar, dvar, gfunction)
-column.mc(50, 10000, 0.01)
+column.mc(1000, 10000, 0.01)
 #

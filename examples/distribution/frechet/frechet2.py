@@ -29,12 +29,12 @@ dvar = [
 ]
 
 # Correlation matrix
-corrmatrix = [[1, 0.2, 0],
-              [0.2, 1, 0],
+corrmatrix = [[1, 0.5, 0],
+              [0.5, 1, 0],
               [0,   0, 1]]
 
 #
 # MC
 #
 beam = Reliability(xvar, dvar, gfunction, None, corrmatrix)
-beam.mc(100, 5000, 0.01)
+beam.mc(100, 5000, 0.01, 1)

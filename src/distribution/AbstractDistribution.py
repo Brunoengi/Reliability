@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from scipy.stats import norm
 import numpy as np
-
 from utils.validate.domain_types.validate_xvar import ValidateXvar
 
 class AbstractDistribution(ABC):
@@ -62,3 +61,4 @@ class AbstractDistribution(ABC):
         w = (fx / phi_zf) / (hx / phi_zk)
         fx_over_phi_zf = fx / phi_zf
         return w, fx_over_phi_zf
+  

@@ -1,18 +1,6 @@
 import numpy as np
 from scipy.stats import norm
-from scipy.stats import lognorm
-from scipy.stats import uniform
-from scipy.stats import gumbel_r
-from scipy.stats import invweibull
-from scipy.stats import weibull_min
-from scipy.stats import multivariate_normal
-from scipy.stats import beta as beta_dist
-from scipy.stats import gamma as gamma_dist
-from scipy.optimize import fsolve
-from scipy.optimize import curve_fit
-import scipy.linalg
-from scipy.special import gamma
-from utils.distribution import createDistribution
+from distribution.map import createDistribution
 from utils.validate.domain_types.validate_dvar import ValidateDvar
 from utils.validate.domain_types.validate_gx import ValidateGx
 from utils.validate.domain_types.validate_corrmatrix import ValidateCorrelationMatrix
