@@ -1,12 +1,8 @@
 import scipy.optimize
 import numpy as np
 import scipy.linalg
-from math import log
-from scipy.stats import norm, uniform, lognorm, gumbel_r, invweibull, weibull_min, beta as beta_dist, gamma as gamma_dist, multivariate_normal
-from scipy.optimize import fsolve, newton
-from scipy.linalg import cholesky
-from math import sqrt, pi, log
-from scipy.special import gamma
+from scipy.stats import norm, multivariate_normal
+
 
 
 class RandomVariablesGenerator:
@@ -123,8 +119,8 @@ class RandomVariablesGenerator:
 
     for i, var in enumerate(xvar_uncorrelated):
             x[:, i], fx, hx = var.sample_direct(ns)
-            ratio = fx / hx
-            weight *= ratio
+            w = fx / hx
+            weight *= w
             fxixj *= fx
         
     return x, weight, fxixj
