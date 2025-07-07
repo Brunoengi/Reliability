@@ -43,5 +43,5 @@ corrmatrix = [[1.00, 0.40, 0.00],
 #   MCS  method
 #
 beam = Reliability(xvar, dvar, gfunction, None, corrmatrix)
-beam.mc(100, 5000, 0.01, 1.00)
+beam.mc(100, 5000, 0.01)
 #

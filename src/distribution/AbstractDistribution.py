@@ -1,4 +1,6 @@
 from abc import ABC, abstractmethod
+from scipy.stats import norm
+import numpy as np
 
 from utils.validate.domain_types.validate_xvar import ValidateXvar
 
@@ -33,3 +35,30 @@ class AbstractDistribution(ABC):
         self.varcov = float(self.varstd / self.varmean) if self.varmean > 0 else 1.00
       else:
         self.varstd = float(self.varcov * self.varmean)
+  
+  def update_weights(
+        self,
+        fx: np.ndarray,
+        hx: np.ndarray,
+        zf_col: np.ndarray,
+        zk_col: np.ndarray,
+    ) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Calculates importance sampling weights for this distribution.
+
+        Parameters:
+            fx: PDF values of target distribution at samples x.
+            hx: PDF values of sampling distribution at samples x.
+            zf_col: Standard normal transformed samples for target distribution.
+            zk_col: Standard normal transformed samples for sampling distribution.
+
+        Returns:
+            w: importance sampling weights (fx/hx adjusted by normal PDFs).
+            fx_over_phi_zf: intermediate term fx / phi(zf) useful for weight updates.
+        """
+        phi_zf = norm.pdf(zf_col)
+        phi_zk = norm.pdf(zk_col)
+
+        w = (fx / phi_zf) / (hx / phi_zk)
+        fx_over_phi_zf = fx / phi_zf
+        return w, fx_over_phi_zf

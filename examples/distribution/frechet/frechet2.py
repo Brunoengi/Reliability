@@ -38,4 +38,3 @@ corrmatrix = [[1, 0.2, 0],
 #
 beam = Reliability(xvar, dvar, gfunction, None, corrmatrix)
 beam.mc(100, 5000, 0.01)
-#

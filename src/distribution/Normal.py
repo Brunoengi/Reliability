@@ -17,6 +17,8 @@ class Normal(AbstractDistribution):
     self.validate_specific_parameters(props)
     super().__init__(props) 
 
+    self.update_sampling(nsigma=1.0)
+
 
   def validate_specific_parameters(self, props):
     ValidateDictionary.is_dictionary(props)
@@ -31,5 +33,10 @@ class Normal(AbstractDistribution):
     hx = norm.pdf(x, self.muhx, self.sigmafx)
     zf = (x - self.mufx) / self.sigmafx
     return x, fx, hx, zf
+  
+  def update_sampling(self, nsigma: float = 1.0):
+        """Updates parameters of the sampling distribution h(x) based on nsigma."""
+        self.muhx = self.mufx
+        self.sigmahx = self.sigmafx * nsigma
 
 
