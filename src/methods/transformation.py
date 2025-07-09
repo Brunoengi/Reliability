@@ -26,6 +26,114 @@ class TransformationBase:
     fk = 1.00 + deltax ** 2 - gamma(1.00 + gsignal * 2.00 / kapa) / gamma(1.00 + gsignal * 1.00 / kapa) ** 2
     return fk
   
+  def normeqv(self, xval, xpar1, xpar2, xpar3, xpar4, namedist):
+      # Equivalent normal distribution parameters
+      # xval = value of the variable x (scalar)
+      # xpar1,xpar2,xpar3,xpar4 = parameters of the original pdf (scalars)
+      # namedist = name of the x probability distribution ('string')  
+    epsilon = 1e-8
+    namedist = namedist.lower()
+
+    if namedist == 'gauss':
+        mux = xpar1
+        sigmax = xpar2
+        muxneq = mux
+        sigmaxneq = sigmax
+
+    elif namedist == 'uniform':
+        a = xpar1
+        b = xpar2
+        c = b - a
+        xval = max(min(xval, b - epsilon), a + epsilon)
+        pdfx = 1. / c
+        cdfx = (xval - a) / c
+        zval = norm.ppf(cdfx)
+        sigmaxneq = norm.pdf(zval) / pdfx
+        muxneq = xval - zval * sigmaxneq
+
+    elif namedist == 'lognorm':
+        mux = xpar1
+        sigmax = xpar2
+        zetax = np.sqrt(np.log(1. + (sigmax / mux) ** 2))
+        lambdax = np.log(mux) - 0.5 * zetax ** 2
+        sigmaxneq = zetax * xval
+        muxneq = xval * (1. - np.log(xval) + lambdax)
+
+    elif namedist == 'gumbel':
+        mux = xpar1
+        sigmax = xpar2
+        alphan = (np.pi / np.sqrt(6.0)) / sigmax
+        un = mux - np.euler_gamma / alphan
+        cdfx = np.exp(-np.exp(-alphan * (xval - un)))
+        pdfx = alphan * np.exp(-alphan * (xval - un)) * cdfx
+        zval = norm.ppf(cdfx)
+        sigmaxneq = norm.pdf(zval) / pdfx
+        muxneq = xval - zval * sigmaxneq
+
+    elif namedist == 'frechet':
+        mux = xpar1
+        sigmax = xpar2
+        deltax = sigmax / mux
+        kapa0 = 2.5
+        gsignal = -1.0
+        kapa = scipy.optimize.newton(self.fkapa, kapa0, args=(deltax, gsignal))
+        vn = mux / gamma(1.0 - 1.0 / kapa)
+        cdfx = np.exp(-(vn / xval) ** kapa)
+        pdfx = kapa / vn * (vn / xval) ** (kapa + 1) * np.exp(-(vn / xval) ** kapa)
+        zval = norm.ppf(cdfx)
+        sigmaxneq = norm.pdf(zval) / pdfx
+        muxneq = xval - zval * sigmaxneq
+
+    elif namedist == 'weibull':
+        mux = xpar1
+        sigmax = xpar2
+        epsilon_w = xpar3
+        deltax = sigmax / (mux - epsilon_w)
+        kapa0 = 2.5
+        gsignal = 1.0
+        kapa = scipy.optimize.newton(self.fkapa, kapa0, args=(deltax, gsignal))
+        w1 = (mux - epsilon_w) / gamma(1.0 + 1.0 / kapa) + epsilon_w
+        y1 = (xval - epsilon_w) / (w1 - epsilon_w)
+        pdfx = weibull_min.pdf(y1, kapa) / (w1 - epsilon_w)
+        cdfx = weibull_min.cdf(y1, kapa)
+        zval = norm.ppf(cdfx)
+        sigmaxneq = norm.pdf(zval) / pdfx
+        muxneq = xval - zval * sigmaxneq
+
+    elif namedist == 'beta':
+        a = xpar1
+        b = xpar2
+        q = xpar3
+        r = xpar4
+        xval = max(min(xval, b - epsilon), a + epsilon)
+        loc = a
+        scale = b - a
+        pdfx = beta_dist.pdf(xval, q, r, loc, scale)
+        cdfx = beta_dist.cdf(xval, q, r, loc, scale)
+        zval = norm.ppf(cdfx)
+        sigmaxneq = norm.pdf(zval) / pdfx
+        muxneq = xval - zval * sigmaxneq
+
+    elif namedist == 'gamma':
+        mux = xpar1
+        sigmax = xpar2
+        delta = sigmax / mux
+        k = 1. / delta**2
+        v = k / mux
+        a = k
+        loc = 0.0
+        scale = 1. / v
+        pdfx = gamma_dist.pdf(xval, a, loc, scale)
+        cdfx = gamma_dist.cdf(xval, a, loc, scale)
+        zval = norm.ppf(cdfx)
+        sigmaxneq = norm.pdf(zval) / pdfx
+        muxneq = xval - zval * sigmaxneq
+
+    else:
+        raise ValueError(f"Distribuição '{namedist}' não reconhecida.")
+
+    return muxneq, sigmaxneq
+  
 class TransformationMethods(TransformationBase):
     
     def __init__(self, parent):
@@ -42,132 +150,6 @@ class TransformationMethods(TransformationBase):
       # FORM - First Order Reliability Method with improved HLRF (iHLRF)
       #
       #
-      # Equivalent normal distribution parameters
-      # xval = value of the variable x (scalar)
-      # xpar1,xpar2,xpar3,xpar4 = parameters of the original pdf (scalars)
-      # namedist = name of the x probability distribution ('string')
-      #
-
-      def normeqv(xval, xpar1, xpar2, xpar3, xpar4, namedist):
-
-          #
-          # Normal distribution
-          #
-          if namedist.lower() == 'gauss':
-              mux = xpar1
-              sigmax = xpar2
-              muxneq = mux
-              sigmaxneq = sigmax
-          #
-          # Uniform or constant distribution
-          #
-          elif namedist.lower() == 'uniform':
-              a = xpar1
-              b = xpar2
-              c = (b - a)
-              pdfx = 1. / c
-              cdfx = (xval - a) / c
-              zval = norm.ppf(cdfx)
-              sigmaxneq = (norm.pdf(zval)) / pdfx
-              muxneq = xval - zval * sigmaxneq
-          #
-          # Lognormal distribution
-          #
-          elif namedist.lower() == 'lognorm':
-              mux = xpar1
-              sigmax = xpar2
-              zetax = np.sqrt(np.log(1. + (sigmax / mux) ** 2))
-              lambdax = np.log(mux) - 0.50 * zetax ** 2
-              sigmaxneq = zetax * xval
-              muxneq = xval * (1. - np.log(xval) + lambdax)
-          #
-          # Gumbel distribution
-          #
-          elif namedist.lower() == 'gumbel':
-              mux = xpar1
-              sigmax = xpar2
-              alphan = (np.pi / np.sqrt(6.00)) / (sigmax)
-              un = mux - np.euler_gamma / alphan
-              cdfx = np.exp(-np.exp(-alphan * (xval - un)))
-              pdfx = alphan * np.exp(-alphan * (xval - un)) * cdfx
-              zval = norm.ppf(cdfx)
-              sigmaxneq = norm.pdf(zval) / pdfx
-              muxneq = xval - zval * sigmaxneq
-          #
-          #
-          # Frechet distribution
-          #
-          elif namedist.lower() == 'frechet':
-              mux = xpar1
-              sigmax = xpar2
-              deltax = sigmax / mux
-              kapa0 = 2.50
-              gsignal = -1.00
-              kapa = scipy.optimize.newton(self.fkapa, kapa0, args=(deltax, gsignal))
-              vn = mux / gamma(1.00 - 1.00 / kapa)
-              cdfx = np.exp(-(vn / xval) ** kapa)
-              pdfx = kapa / vn * (vn / xval) ** (kapa + 1) * np.exp(-(vn / xval) ** kapa)
-              zval = norm.ppf(cdfx)
-              sigmaxneq = norm.pdf(zval) / pdfx
-              muxneq = xval - zval * sigmaxneq
-          #
-          #
-          # Weibull distribution minimum
-          #
-          elif namedist.lower() == 'weibull':
-              mux = xpar1
-              sigmax = xpar2
-              epsilon = xpar3
-              deltax = sigmax / (mux - epsilon)
-              kapa0 = 2.50
-              gsignal = 1.00
-              kapa = scipy.optimize.newton(self.fkapa, kapa0, args=(deltax, gsignal))
-              w1 = (mux - epsilon) / gamma(1.00 + 1.00 / kapa) + epsilon
-              y1 = (xval - epsilon) / (w1 - epsilon)
-              pdfx = weibull_min.pdf(y1, kapa) / (w1 - epsilon)
-              cdfx = weibull_min.cdf(y1, kapa)
-              zval = norm.ppf(cdfx)
-              sigmaxneq = norm.pdf(zval) / pdfx
-              muxneq = xval - zval * sigmaxneq
-          #
-          #
-          # Beta distribution
-          #
-          elif namedist.lower() == 'beta':
-              a = xpar1
-              b = xpar2
-              q = xpar3
-              r = xpar4
-              loc = a
-              scale = (b - a)
-              pdfx = beta_dist.pdf(xval, q, r, loc, scale)
-              cdfx = beta_dist.cdf(xval, q, r, loc, scale)
-              zval = norm.ppf(cdfx)
-              sigmaxneq = norm.pdf(zval) / pdfx
-              muxneq = xval - zval * sigmaxneq
-
-
-          #
-          #
-          # Gamma distribution
-          #
-          elif namedist.lower() == 'gamma':
-              mux = xpar1
-              sigmax = xpar2
-              delta = sigmax / mux
-              k = 1. / delta ** 2
-              v = k / mux
-              a = k
-              loc = 0.00
-              scale = 1. / v
-              pdfx = gamma_dist.pdf(xval, a, loc, scale)
-              cdfx = gamma_dist.cdf(xval, a, loc, scale)
-              zval = norm.ppf(cdfx)
-              sigmaxneq = norm.pdf(zval) / pdfx
-              muxneq = xval - zval * sigmaxneq
-
-          return muxneq, sigmaxneq
-      
       #
       #
       # Data input
@@ -309,7 +291,7 @@ class TransformationMethods(TransformationBase):
                   xpar1 = par1[i]
                   xpar2 = par2[i]
 
-              muxneqk[i], sigmaxneqk[i] = normeqv(xval, xpar1, xpar2, xpar3, xpar4, namedist)
+              muxneqk[i], sigmaxneqk[i] = self.normeqv(xval, xpar1, xpar2, xpar3, xpar4, namedist)
           #
           # Step 3 - Update of the Jacobian matrices Jyx and Jxy
           #
@@ -446,138 +428,6 @@ class TransformationMethods(TransformationBase):
         """
       #
         # FORM - First Order Reliability Method with improved HLRF (iHLRF)
-
-        #
-        # Equivalent normal distribution parameters
-        # xval = value of the variable x (scalar)
-        # xpar1,xpar2,xpar3,xpar4 = parameters of the original pdf (scalars)
-        # namedist = name of the x probability distribution ('string')
-        # zval = equivalente normal variabel correlated
-        #
-        def normeqv(xval, xpar1, xpar2, xpar3, xpar4, namedist):
-
-            #
-            # Normal distribution
-            #
-            if namedist.lower() == 'gauss':
-                mux = xpar1
-                sigmax = xpar2
-                muxneq = mux
-                sigmaxneq = sigmax
-            #
-            # Uniform or constant distribution
-            #
-            elif namedist.lower() == 'uniform':
-                epsilon = 1.e-8
-                a = xpar1
-                b = xpar2
-                c = (b - a)
-                if xval<=a: xval = a + epsilon
-                if xval>=b: xval = b - epsilon
-                pdfx = 1. / c
-                cdfx = (xval - a) / c
-                zval = norm.ppf(cdfx)
-                sigmaxneq = (norm.pdf(zval)) / pdfx
-                muxneq = xval - zval * sigmaxneq
-            #
-            # Lognormal distribution
-            #
-            elif namedist.lower() == 'lognorm':
-                mux = xpar1
-                sigmax = xpar2
-                zetax = np.sqrt(np.log(1. + (sigmax / mux) ** 2))
-                lambdax = np.log(mux) - 0.50 * zetax ** 2
-                sigmaxneq = zetax * xval
-                muxneq = xval * (1. - np.log(xval) + lambdax)
-            #
-            # Gumbel distribution
-            #
-            elif namedist.lower() == 'gumbel':
-                mux = xpar1
-                sigmax = xpar2
-                alphan = (np.pi / np.sqrt(6.00)) / (sigmax)
-                un = mux - np.euler_gamma / alphan
-                cdfx = np.exp(-np.exp(-alphan * (xval - un)))
-                pdfx = alphan * np.exp(-alphan * (xval - un)) * cdfx
-                zval = norm.ppf(cdfx)
-                sigmaxneq = norm.pdf(zval) / pdfx
-                muxneq = xval - zval * sigmaxneq
-            #
-            #
-            # Frechet distribution
-            #
-            elif namedist.lower() == 'frechet':
-                mux = xpar1
-                sigmax = xpar2
-                deltax = sigmax / mux
-                kapa0 = 2.50
-                gsignal = -1.00
-                kapa = scipy.optimize.newton(self.fkapa, kapa0, args=(deltax, gsignal))
-                vn = mux / gamma(1.00 - 1.00 / kapa)
-                cdfx = np.exp(-(vn / xval) ** kapa)
-                pdfx = kapa / vn * (vn / xval) ** (kapa + 1) * np.exp(-(vn / xval) ** kapa)
-                zval = norm.ppf(cdfx)
-                sigmaxneq = norm.pdf(zval) / pdfx
-                muxneq = xval - zval * sigmaxneq
-            #
-            #
-            # Weibull distribution minimum
-            #
-            elif namedist.lower() == 'weibull':
-                mux = xpar1
-                sigmax = xpar2
-                epsilon = xpar3
-                deltax = sigmax / (mux - epsilon)
-                kapa0 = 2.50
-                gsignal = 1.00
-                kapa = scipy.optimize.newton(self.fkapa, kapa0, args=(deltax, gsignal))
-                w1 = (mux - epsilon) / gamma(1.00 + 1.00 / kapa) + epsilon
-                y1 = (xval - epsilon) / (w1 - epsilon)
-                pdfx = weibull_min.pdf(y1, kapa) / (w1 - epsilon)
-                cdfx = weibull_min.cdf(y1, kapa)
-                zval = norm.ppf(cdfx)
-                sigmaxneq = norm.pdf(zval) / pdfx
-                muxneq = xval - zval * sigmaxneq
-            #
-            #
-            # Beta distribution
-            #
-            elif namedist.lower() == 'beta':
-                epsilon = 1.e-8
-                a = xpar1
-                b = xpar2
-                q = xpar3
-                r = xpar4
-                loc = a
-                scale = (b - a)
-                if xval<=a: xval = a + epsilon
-                if xval>=b: xval = b - epsilon
-                pdfx = beta_dist.pdf(xval, q, r, loc, scale)
-                cdfx = beta_dist.cdf(xval, q, r, loc, scale)
-                zval = norm.ppf(cdfx)
-                sigmaxneq = norm.pdf(zval) / pdfx
-                muxneq = xval - zval * sigmaxneq
-
-            #
-            #
-            # Gamma distribution
-            #
-            elif namedist.lower() == 'gamma':
-                mux = xpar1
-                sigmax = xpar2
-                deltax = sigmax / mux
-                k = 1. / deltax
-                v = k / mux
-                a = k
-                loc = 0.00
-                scale = 1. / v
-                pdfx = gamma_dist.pdf(xval, a, loc, scale)
-                cdfx = gamma_dist.cdf(xval, a, loc, scale)
-                zval = norm.ppf(cdfx)
-                sigmaxneq = norm.pdf(zval) / pdfx
-                muxneq = xval - zval * sigmaxneq
-
-            return muxneq, sigmaxneq
         
         def direct_mapping(xval, xpar1, xpar2, xpar3, xpar4, namedist):
 
@@ -927,7 +777,7 @@ class TransformationMethods(TransformationBase):
 
                 uk[i] = direct_mapping(xval, xpar1, xpar2, xpar3, xpar4, namedist)
 
-                muxneqk[i], sigmaxneqk[i] = normeqv(xval, xpar1, xpar2, xpar3, xpar4, namedist)
+                muxneqk[i], sigmaxneqk[i] = self.normeqv(xval, xpar1, xpar2, xpar3, xpar4, namedist)
             #
             # Step 3 - Update of the Jacobian matrices Jyx and Jxy
             #

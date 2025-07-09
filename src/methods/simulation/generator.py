@@ -13,7 +13,7 @@ class RandomVariablesGenerator:
       ## Get all properties about Reliability
       self.reliability = parent.reliability
 
-  def main(self, ns, iprint=False):
+  def main(self, ns):
         """
         Method to generate random variables, check correlation matrix to use var_gen (correlated variables) or var_rvs (uncorrelated variables )
 
@@ -27,13 +27,6 @@ class RandomVariablesGenerator:
 
         # Empty matrix 
         x = np.empty((ns, total_index))
-
-        #
-        # Standard deviation multiplier for MC-IS
-        #
-        # Step 1 - Generation of the random numbers according to their appropriate distribution
-        #
-
         wpc = np.ones(ns)
         fxc = np.ones(ns)
         wpu = np.ones(ns)
@@ -45,12 +38,10 @@ class RandomVariablesGenerator:
         if index_uncorrelated:
           xpu, wpu, fxu = self.var_rvs(ns, index_uncorrelated)
         
-
-
         for i, idx in enumerate(index_correlated):
           x[:, idx] = xpc[:, i]
 
-        # Preencher as colunas dos não correlacionados
+        # Fill in the uncorrelated columns
         if index_correlated:
           for i, idx in enumerate(index_correlated):
             x[:, idx] = xpc[:, i]
@@ -86,12 +77,12 @@ class RandomVariablesGenerator:
       yk = norm.ppf(uk_cycle)       # Independent standard normals
       zk = yk @ L.T                 # Correlated normals
 
-      for i, var in enumerate(xvar_correlated):
+      for i, distribution in enumerate(xvar_correlated):
           zk_col = zk[:, i]
-          x[:, i], fx, hx, zf[:, i] = var.transform(zk_col)
+          x[:, i], fx, hx, zf[:, i] = distribution.transform(zk_col)
 
           # Update weights and fxixj for variable i
-          w, fx_over_norm = var.update_weights(fx, hx, zf[:, i], zk_col)
+          w, fx_over_norm = distribution.update_weights(fx, hx, zf[:, i], zk_col)
           weight *= w
           fxixj *= fx_over_norm
 
@@ -117,8 +108,8 @@ class RandomVariablesGenerator:
     weight = np.ones(ns)
     fxixj = np.ones(ns)
 
-    for i, var in enumerate(xvar_uncorrelated):
-            x[:, i], fx, hx = var.sample_direct(ns)
+    for i, distribution in enumerate(xvar_uncorrelated):
+            x[:, i], fx, hx = distribution.sample_direct(ns)
             w = fx / hx
             weight *= w
             fxixj *= fx

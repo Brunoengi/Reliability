@@ -55,7 +55,7 @@ class Frechet(AbstractDistribution):
     
     def sample(self, ns: int):
         """
-        Amostra valores de x a partir da distribuição de amostragem h(x).
+        Sample values ​​of x from the sampling distribution h(x).
         """
         u = np.random.rand(ns)
         x = self.vhn / (np.log(1 / u)) ** (1 / self.kapah)
@@ -63,22 +63,22 @@ class Frechet(AbstractDistribution):
 
     def density_fx(self, x: np.ndarray):
         """
-        Avalia a densidade da distribuição alvo f(x) nos pontos x.
+        Evaluates the density of the target distribution f(x) at points x.
         """
         y = x / self.vfn
         return invweibull.pdf(y, self.kapaf) / self.vfn
 
     def density_hx(self, x: np.ndarray):
         """
-        Avalia a densidade da distribuição de amostragem h(x) nos pontos x.
+        Evaluates the density of the sampling distribution h(x) at points x.
         """
         y = x / self.vhn
         return invweibull.pdf(y, self.kapah) / self.vhn
 
     def sample_direct(self, ns: int):
-        """
-        Amostra x ~ h(x) e computa fx, hx nos pontos amostrados.
-        Retorna: x, fx, hx
+        """     
+        Sample x ~ h(x) and compute fx, hx at the sampled points.
+        Returns: x, fx, hx
         """
         x = self.sample(ns)
         fx = self.density_fx(x)
