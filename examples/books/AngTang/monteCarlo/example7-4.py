@@ -35,5 +35,5 @@ dvar = [
 # MCS method
 
 beam = Reliability(xvar, dvar, gfunction)
-beam.mc(100, 10000, 0.01)
+beam.mc(1000, 5000, 0.02)
 #
